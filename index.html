@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APIS Market Lab — Inteligencia Comercial & Creación de Landing Pages</title>
+  
+  <!-- Fuente Google Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#1E2A2A',
+            brandSurface: '#162222',
+            brandGold: '#B59963',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* ========================================================================= */
+    /* 1. PALETA OFICIAL (#1E2A2A, #B59963, BLANCO) & BASES LEY DE HICK         */
+    /* ========================================================================= */
+    :root {
+      --brand-dark: #1E2A2A;
+      --brand-surface: #162222;
+      --brand-gold: #B59963;
+      --brand-gold-glow: rgba(181, 153, 99, 0.35);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      background-color: #1E2A2A;
+      color: #ffffff;
+      overflow-x: hidden;
+      width: 100%;
+      min-height: 100%;
+    }
+
+    ::selection {
+      background-color: #B59963;
+      color: #1E2A2A;
+    }
+
+    /* ========================================================================= */
+    /* 2. COMPONENTE BORDERGLOW (REACT BITS - ADAPTACIÓN CSS)                    */
+    /* ========================================================================= */
+    .border-glow-card {
+      --edge-proximity: 0;
+      --cursor-angle: 45deg;
+      --edge-sensitivity: 28;
+      --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+      --border-radius: 24px;
+      --glow-padding: 40px;
+      --cone-spread: 24;
+      --card-bg: #1E2A2A;
+
+      position: relative;
+      border-radius: var(--border-radius);
+      isolation: isolate;
+      display: grid;
+      border: 1px solid rgba(181, 153, 99, 0.22);
+      background: var(--card-bg, #1E2A2A);
+      overflow: visible;
+      box-shadow:
+        rgba(0, 0, 0, 0.25) 0px 4px 14px,
+        rgba(0, 0, 0, 0.35) 0px 14px 28px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .border-glow-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(181, 153, 99, 0.45);
+    }
+
+    .border-glow-card::before,
+    .border-glow-card::after,
+    .border-glow-card > .edge-light {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .border-glow-card::before {
+      border: 2px solid transparent;
+      background:
+        padding-box linear-gradient(transparent, transparent),
+        border-box conic-gradient(
+          from calc(var(--cursor-angle) - var(--cone-spread) * 1deg),
+          transparent 0deg,
+          #c084fc 30deg,
+          #f472b6 60deg,
+          #B59963 90deg,
+          #38bdf8 120deg,
+          transparent calc(var(--cone-spread) * 2deg)
+        );
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: calc(var(--edge-proximity) / 100);
+      z-index: 2;
+    }
+
+    .border-glow-card > .edge-light {
+      inset: calc(var(--glow-padding) * -1);
+      border-radius: calc(var(--border-radius) + var(--glow-padding));
+      background: conic-gradient(
+        from calc(var(--cursor-angle) - var(--cone-spread) * 1deg),
+        transparent 0deg,
+        #c084fc 30deg,
+        #f472b6 60deg,
+        #B59963 90deg,
+        #38bdf8 120deg,
+        transparent calc(var(--cone-spread) * 2deg)
+      );
+      -webkit-mask: radial-gradient(
+        circle at 50% 50%,
+        black 0%,
+        black 40%,
+        transparent 70%
+      );
+      mask: radial-gradient(
+        circle at 50% 50%,
+        black 0%,
+        black 40%,
+        transparent 70%
+      );
+      opacity: calc((var(--edge-proximity) / 100) * 0.75);
+      filter: blur(26px);
+      z-index: 1;
+    }
+
+    .border-glow-card::after {
+      background: radial-gradient(
+        circle at 50% 50%,
+        rgba(181, 153, 99, 0.08) 0%,
+        transparent 70%
+      );
+      opacity: calc(var(--edge-proximity) / 100);
+      z-index: 0;
+    }
+
+    .card-inner-content {
+      position: relative;
+      z-index: 3;
+      padding: 2.25rem 2rem;
+      border-radius: inherit;
+      background: #1E2A2A;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    /* ========================================================================= */
+    /* 3. STEPPER UX - LEY DE HICK (REDUCIR CARGA COGNITIVA)                     */
+    /* ========================================================================= */
+    .step-indicator {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 9999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.875rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .step-indicator.active {
+      background-color: #B59963;
+      color: #1E2A2A;
+      box-shadow: 0 0 20px rgba(181, 153, 99, 0.5);
+      border: 2px solid #B59963;
+    }
+
+    .step-indicator.complete {
+      background-color: #B59963;
+      color: #1E2A2A;
+      border: 2px solid #B59963;
+    }
+
+    .step-indicator.inactive {
+      background-color: #162222;
+      color: #888888;
+      border: 1px solid rgba(181, 153, 99, 0.3);
+    }
+
+    .step-line-progress {
+      height: 2px;
+      flex: 1;
+      background-color: rgba(181, 153, 99, 0.2);
+      position: relative;
+    }
+
+    .step-line-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background-color: #B59963;
+      transition: width 0.35s ease;
+    }
+
+    .step-content {
+      display: none;
+      animation: fadeInStep 0.35s ease forwards;
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    @keyframes fadeInStep {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body class="bg-[#1E2A2A] text-white">
+
+  <!-- ========================================================================= -->
+  <!-- 1. HEADER (LEY DE HICK: 1 FOCO PRINCIPAL + MENÚ SECUNDARIO)               -->
+  <!-- ========================================================================= -->
+  <header class="sticky top-0 z-40 w-full bg-[#1E2A2A]/90 backdrop-blur-md border-b border-[#B59963]/15">
+    <div class="max-w-7xl mx-auto flex items-center justify-between px-5 sm:px-8 py-4">
+      <!-- Logo APIS MARKET LAB -->
+      <a href="#" class="flex items-center gap-3 group" aria-label="APIS Market Lab">
+        <div class="w-8 h-8 rounded-full border border-[#B59963] flex items-center justify-center transition-all group-hover:shadow-[0_0_15px_rgba(181,153,99,0.35)]">
+          <div class="w-2.5 h-2.5 rounded-full bg-[#B59963] group-hover:scale-110 transition-transform"></div>
+        </div>
+        <span class="text-sm tracking-widest font-black text-white group-hover:text-[#B59963] transition-colors">
+          APIS MARKET LAB
+        </span>
+      </a>
+
+      <!-- Controles: CTA Primario Guiado + Menú -->
+      <div class="flex items-center gap-3">
+        <a
+          href="#cotizacion"
+          class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-xs uppercase tracking-wider transition-all shadow-md"
+        >
+          <span>COTIZAR PROYECTO</span>
+        </a>
+
+        <button
+          id="btn-open-menu"
+          aria-label="Abrir Menú Principal"
+          class="w-10 h-10 rounded-full border border-[#B59963]/40 bg-[#162222] flex items-center justify-center hover:border-[#B59963] hover:shadow-[0_0_12px_rgba(181,153,99,0.3)] transition-all cursor-pointer"
+        >
+          <svg class="w-5 h-5 text-[#B59963]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ---------------- MENÚ DESPLEGABLE OVERLAY FULL-SCREEN ---------------- -->
+  <div
+    id="modal-menu"
+    class="fixed inset-0 z-50 bg-[#1E2A2A]/98 backdrop-blur-2xl p-6 sm:p-12 flex flex-col justify-between hidden transition-opacity duration-300"
+  >
+    <div class="flex items-center justify-between border-b border-[#B59963]/20 pb-6">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-full border border-[#B59963] flex items-center justify-center">
+          <div class="w-2.5 h-2.5 rounded-full bg-[#B59963]"></div>
+        </div>
+        <span class="text-sm tracking-widest font-black text-white">APIS MARKET LAB</span>
+      </div>
+
+      <button
+        id="btn-close-menu"
+        aria-label="Cerrar Menú"
+        class="w-10 h-10 rounded-full border border-[#B59963]/40 bg-[#162222] flex items-center justify-center text-[#B59963] hover:text-white hover:border-[#B59963] transition-all cursor-pointer"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Navegación simplificada: 4 rutas clave -->
+    <nav class="flex flex-col space-y-6 sm:space-y-8 my-auto text-xl sm:text-3xl font-semibold tracking-widest text-white uppercase">
+      <p class="text-xs text-[#B59963] tracking-widest mb-1">// MAPA DEL SITIO</p>
+      <a href="#gancho" class="nav-link hover:text-[#B59963] transition-colors w-fit">01. Propuesta de Valor</a>
+      <a href="#servicios" class="nav-link hover:text-[#B59963] transition-colors w-fit">02. Soluciones & Servicios</a>
+      <a href="#landing-pages" class="nav-link hover:text-[#B59963] transition-colors w-fit">03. Landing Pages de Alta Conversión</a>
+      <a href="#cotizacion" class="nav-link hover:text-[#B59963] transition-colors w-fit">04. Cotizador en Línea</a>
+    </nav>
+
+    <!-- Pie del Menú con Contacto Directo -->
+    <div class="pt-6 border-t border-[#B59963]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div>
+        <p class="text-xs text-[#B59963] uppercase tracking-widest mb-1">CORREO OFICIAL</p>
+        <p class="text-sm normal-case text-white font-medium">apismarketlab@gmail.com</p>
+      </div>
+      <a
+        href="#cotizacion"
+        class="nav-link px-6 py-3 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-xs uppercase tracking-wider flex items-center gap-2 transition-all shadow-lg"
+      >
+        <span>INICIAR COTIZACIÓN AHORA</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+      </a>
+    </div>
+  </div>
+
+
+  <!-- ========================================================================= -->
+  <!-- 2. HERO SECTION (LEY DE HICK: CERO DISTRACCIONES, 1 DECISIÓN CLARA)        -->
+  <!-- ========================================================================= -->
+  <section id="gancho" class="relative min-h-[85vh] flex flex-col justify-center items-center px-5 sm:px-8 py-20 text-center bg-[#1E2A2A] overflow-hidden">
+    
+    <!-- Resplandor estático sin movimiento -->
+    <div class="absolute inset-0 pointer-events-none -z-10">
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-[#B59963]/10 rounded-full blur-[140px]"></div>
+    </div>
+
+    <div class="max-w-4xl mx-auto flex flex-col items-center">
+      <!-- Badge de Autoridad -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#162222] border border-[#B59963]/40 text-[#B59963] text-xs font-semibold tracking-widest uppercase mb-6 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-[#B59963] animate-pulse"></span>
+        <span>ESTRATEGIA & CONSUMER INTELLIGENCE</span>
+      </div>
+
+      <!-- Gancho Principal Oficial -->
+      <h1 class="text-3xl sm:text-5xl md:text-6xl font-black uppercase text-white leading-tight tracking-wide mb-6">
+        No compitas a ciegas: convierte datos de mercado en clientes recurrentes.
+      </h1>
+
+      <!-- Bajada de Apoyo (Subtítulo en #B59963) -->
+      <p class="text-sm sm:text-base md:text-lg font-semibold uppercase tracking-wider text-[#B59963] leading-relaxed max-w-2xl mb-10">
+        Combinamos investigación del consumidor, psicología de compra y desarrollo digital para que cada clic en tu página tenga una intención real de negocio.
+      </p>
+
+      <!-- Botón Único Primario (Ley de Hick: Eliminar parálisis por elección) -->
+      <div class="flex flex-col sm:flex-row items-center gap-4">
+        <a
+          href="#cotizacion"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-extrabold text-sm uppercase tracking-widest transition-all duration-300 shadow-xl hover:shadow-[0_0_25px_rgba(181,153,99,0.45)] group cursor-pointer"
+        >
+          <span>SOLICITAR COTIZACIÓN DIRECTA</span>
+          <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+
+        <a
+          href="#servicios"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-full bg-transparent hover:bg-[#162222] border border-[#B59963]/30 text-white hover:text-[#B59963] text-xs uppercase tracking-widest transition-all"
+        >
+          <span>Explorar los 5 Servicios ↓</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ========================================================================= -->
+  <!-- 3. SERVICIOS APIS LAB CON BORDERGLOW & ANCLAJE VISUAL (LEY DE HICK)       -->
+  <!-- ========================================================================= -->
+  <section id="servicios" class="relative w-full py-24 px-5 sm:px-8 md:px-12 bg-[#1E2A2A] border-t border-[#B59963]/20">
+    <div class="max-w-6xl mx-auto text-center mb-16">
+      <p class="text-xs sm:text-sm font-semibold tracking-widest text-[#B59963] uppercase mb-2">
+        // CATÁLOGO ESTRUCTURADO APIS LAB
+      </p>
+      <h2 class="text-3xl sm:text-4xl md:text-5xl font-extrabold uppercase tracking-wider text-white mb-4">
+        SOLUCIONES PARA CADA ETAPA COMERCIAL
+      </h2>
+      <p class="text-sm sm:text-base text-white font-normal max-w-2xl mx-auto leading-relaxed">
+        Elige la solución que resuelve tu necesidad actual. Al hacer clic en <strong class="text-[#B59963]">"Cotizar esta Solución"</strong>, el formulario se preparará automáticamente.
+      </p>
+    </div>
+
+    <!-- Cuadrícula de 5 Tarjetas con BorderGlow Oficial -->
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      
+      <!-- TARJETA 01 (DESTACADA: ANCLAJE VISUAL LEY DE HICK) -->
+      <div class="border-glow-card relative" data-colors='["#c084fc", "#f472b6", "#B59963"]'>
+        <div class="edge-light"></div>
+        <div class="card-inner-content">
+          <!-- Badge de anclaje de decisión -->
+          <div class="flex items-center justify-between mb-4">
+            <span class="px-2.5 py-0.5 rounded-full bg-[#B59963] text-[#1E2A2A] text-[10px] font-black uppercase tracking-wider">
+              ★ MÁS SOLICITADO
+            </span>
+            <span class="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">01 // APIS LAB</span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-wider text-[#B59963] mb-2">
+            INTELIGENCIA DE NEGOCIO & DATOS
+          </p>
+          <h3 class="text-xl font-bold uppercase text-white tracking-wide mb-4">
+            ASESORÍA EN BUSINESS INTELLIGENCE
+          </h3>
+          <p class="text-sm text-white font-normal leading-relaxed mb-6">
+            Traducimos los números y movimientos de tu empresa en decisiones fáciles de entender. Analizamos qué vendes, a quién le vendes y dónde estás perdiendo dinero para crear tableros visuales que te permitan saber exactamente qué hacer para crecer, sin enredos técnicos.
+          </p>
+
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Diagnóstico claro de ventas y costos</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Tableros visuales fáciles de consultar</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Decisiones basadas en números reales</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="preselectService('Asesoría en Business Intelligence')"
+            class="mt-auto w-full py-3 rounded-xl bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>COTIZAR ESTA SOLUCIÓN</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TARJETA 02 -->
+      <div class="border-glow-card" data-colors='["#38bdf8", "#B59963", "#c084fc"]'>
+        <div class="edge-light"></div>
+        <div class="card-inner-content">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">02 // APIS LAB</span>
+            <span class="w-2 h-2 rounded-full bg-[#B59963]"></span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-wider text-[#B59963] mb-2">
+            CANALES DIGITALES Y ATRACCIÓN
+          </p>
+          <h3 class="text-xl font-bold uppercase text-white tracking-wide mb-4">
+            SITIOS WEB Y PUBLICIDAD DIRIGIDA
+          </h3>
+          <p class="text-sm text-white font-normal leading-relaxed mb-6">
+            Desarrollamos páginas web diseñadas para vender y creamos campañas de anuncios en redes sociales y buscadores que llevan a clientes potenciales directo a tu negocio, asegurando que cada peso invertido en publicidad tenga una intención clara de compra.
+          </p>
+
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Sitios web rápidos y adaptados a celulares</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Anuncios segmentados a tu cliente ideal</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Medición exacta de prospectos y ventas</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="preselectService('Sitios Web y Publicidad Dirigida')"
+            class="mt-auto w-full py-3 rounded-xl bg-[#162222] hover:bg-[#B59963] text-white hover:text-[#1E2A2A] border border-[#B59963]/40 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>COTIZAR ESTA SOLUCIÓN</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TARJETA 03 -->
+      <div class="border-glow-card" data-colors='["#f472b6", "#38bdf8", "#B59963"]'>
+        <div class="edge-light"></div>
+        <div class="card-inner-content">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">03 // APIS LAB</span>
+            <span class="w-2 h-2 rounded-full bg-[#B59963]"></span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-wider text-[#B59963] mb-2">
+            CONSUMIDOR Y COMPETENCIA
+          </p>
+          <h3 class="text-xl font-bold uppercase text-white tracking-wide mb-4">
+            ESTUDIOS DE MERCADO REALES
+          </h3>
+          <p class="text-sm text-white font-normal leading-relaxed mb-6">
+            Salimos a investigar qué piensa tu cliente, cuánto está dispuesto a pagar y qué está haciendo tu competencia. Te entregamos información práctica para lanzar nuevos productos, abrir sucursales o ajustar tus precios con la seguridad de que la gente va a comprar.
+          </p>
+
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Encuestas y entrevistas a compradores reales</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Análisis de precios y competidores cercanos</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Validación de ideas antes de invertir capital</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="preselectService('Estudios de Mercado Reales')"
+            class="mt-auto w-full py-3 rounded-xl bg-[#162222] hover:bg-[#B59963] text-white hover:text-[#1E2A2A] border border-[#B59963]/40 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>COTIZAR ESTA SOLUCIÓN</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TARJETA 04 -->
+      <div class="border-glow-card" data-colors='["#B59963", "#c084fc", "#f472b6"]'>
+        <div class="edge-light"></div>
+        <div class="card-inner-content">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">04 // APIS LAB</span>
+            <span class="w-2 h-2 rounded-full bg-[#B59963]"></span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-wider text-[#B59963] mb-2">
+            POSICIONAMIENTO Y VENTAS FÍSICAS
+          </p>
+          <h3 class="text-xl font-bold uppercase text-white tracking-wide mb-4">
+            ASESORÍA Y MARKETING TRADICIONAL
+          </h3>
+          <p class="text-sm text-white font-normal leading-relaxed mb-6">
+            Optimizamos la experiencia en tu punto de venta, eventos, material impreso y estrategias cara a cara. Diseñamos planes comerciales para negocios que dependen del trato directo con el cliente, mejorando la presentación de tu marca y cerrando ventas en el mundo físico.
+          </p>
+
+          <div class="space-y-2 mb-6">
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Estrategia de exhibición y venta en tienda</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Activaciones de marca y eventos comerciales</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Guías prácticas para tus vendedores</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="preselectService('Asesoría y Marketing Tradicional')"
+            class="mt-auto w-full py-3 rounded-xl bg-[#162222] hover:bg-[#B59963] text-white hover:text-[#1E2A2A] border border-[#B59963]/40 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>COTIZAR ESTA SOLUCIÓN</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- TARJETA 05 (ANCHO COMPLETO PARA BALANCE VISUAL) -->
+      <div class="border-glow-card md:col-span-2 lg:col-span-2" data-colors='["#38bdf8", "#f472b6", "#B59963"]'>
+        <div class="edge-light"></div>
+        <div class="card-inner-content">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-[11px] font-bold tracking-widest text-neutral-400 uppercase">05 // APIS LAB</span>
+            <span class="w-2 h-2 rounded-full bg-[#B59963]"></span>
+          </div>
+
+          <p class="text-xs font-semibold uppercase tracking-wider text-[#B59963] mb-2">
+            DIAGNÓSTICO INTEGRAL Y CRECIMIENTO
+          </p>
+          <h3 class="text-xl font-bold uppercase text-white tracking-wide mb-4">
+            DETECCIÓN DE ÁREAS DE MEJORA
+          </h3>
+          <p class="text-sm text-white font-normal leading-relaxed mb-6">
+            Evaluamos tu empresa de punta a punta: atención al cliente, procesos de venta y presencia de marca. Identificamos qué te está frenando o qué errores te hacen perder clientes para entregarte un plan de acción directo, ordenado por prioridades de solución.
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Auditoría de atención y ventas</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Detección de cuellos de botella</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-white">
+              <svg class="w-4 h-4 text-[#B59963] shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <span>Plan con pasos prioritarios</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onclick="preselectService('Detección de Áreas de Mejora (Diagnóstico Integral)')"
+            class="mt-auto w-full py-3 rounded-xl bg-[#162222] hover:bg-[#B59963] text-white hover:text-[#1E2A2A] border border-[#B59963]/40 font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>COTIZAR ESTA SOLUCIÓN</span>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ========================================================================= -->
+  <!-- 4. CONTENEDOR ESPECIALIZADO: CREACIÓN DE LANDING PAGES                    -->
+  <!-- ========================================================================= -->
+  <section id="landing-pages" class="relative w-full py-20 px-5 sm:px-8 md:px-12 bg-[#162222] border-t border-[#B59963]/20">
+    <div class="max-w-5xl mx-auto rounded-3xl bg-[#1E2A2A] border border-[#B59963]/30 p-8 sm:p-12 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-[#B59963]/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+      <div class="max-w-2xl">
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#B59963] mb-2">
+          // INFRAESTRUCTURA DE CONVERSIÓN
+        </p>
+        <h2 class="text-2xl sm:text-4xl font-extrabold uppercase text-white mb-4">
+          CREACIÓN DE LANDING PAGES DE ALTO RENDIMIENTO
+        </h2>
+        <p class="text-sm text-white font-normal leading-relaxed mb-6">
+          No creamos páginas web estáticas. Desarrollamos herramientas comerciales optimizadas para cargar en menos de un segundo, capturar la atención de tu cliente ideal y convertir visitas frías en prospectos calificados listos para comprar.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 text-xs text-white">
+          <div class="flex items-center gap-2.5">
+            <div class="w-2 h-2 rounded-full bg-[#B59963] shrink-0"></div>
+            <span>Estructuras de persuasión y copywriting.</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-2 h-2 rounded-full bg-[#B59963] shrink-0"></div>
+            <span>Formularios seguros con filtro anti-spam.</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-2 h-2 rounded-full bg-[#B59963] shrink-0"></div>
+            <span>100% responsivas para celulares y tablets.</span>
+          </div>
+          <div class="flex items-center gap-2.5">
+            <div class="w-2 h-2 rounded-full bg-[#B59963] shrink-0"></div>
+            <span>Diseño optimizado para velocidad extrema.</span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onclick="preselectService('Sitios Web y Publicidad Dirigida')"
+          class="inline-flex items-center gap-3 px-8 py-3.5 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-xs uppercase tracking-widest transition-all shadow-lg cursor-pointer"
+        >
+          <span>COTIZAR MI LANDING PAGE</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ========================================================================= -->
+  <!-- 5. COTIZADOR STEPPER (APLICANDO LEY DE HICK: MÁXIMO 1 DECISIÓN POR PASO)  -->
+  <!-- ========================================================================= -->
+  <section id="cotizacion" class="relative w-full py-24 px-5 sm:px-8 md:px-12 bg-[#1E2A2A] border-t border-[#B59963]/20">
+    <div class="max-w-3xl mx-auto text-center mb-10">
+      <p class="text-xs sm:text-sm font-semibold tracking-widest text-[#B59963] uppercase mb-2">
+        // COTIZACIÓN INMEDIATA & ENTREGA DIRECTA A GMAIL
+      </p>
+      <h2 class="text-3xl sm:text-4xl font-bold uppercase tracking-wider text-white mb-3">
+        SOLICITA TU PROPUESTA PERSONALIZADA
+      </h2>
+      <p class="text-xs sm:text-sm text-white/90 font-normal max-w-lg mx-auto leading-relaxed">
+        Completa este breve asistente de 4 pasos. Tu cotización llegará directamente a la bandeja de <span class="text-[#B59963] font-semibold">apismarketlab@gmail.com</span>.
+      </p>
+    </div>
+
+    <!-- Contenedor del Stepper -->
+    <div class="max-w-3xl mx-auto bg-[#162222] border border-[#B59963]/30 rounded-3xl p-6 sm:p-10 shadow-2xl">
+      
+      <!-- Indicador Visual de Progreso (Chunking) -->
+      <div class="flex items-center justify-between mb-8 pb-6 border-b border-[#B59963]/20">
+        <div class="step-indicator active" data-step="1">1</div>
+        <div class="step-line-progress"><div class="step-line-fill" id="connector-1" style="width: 0%;"></div></div>
+        <div class="step-indicator inactive" data-step="2">2</div>
+        <div class="step-line-progress"><div class="step-line-fill" id="connector-2" style="width: 0%;"></div></div>
+        <div class="step-indicator inactive" data-step="3">3</div>
+        <div class="step-line-progress"><div class="step-line-fill" id="connector-3" style="width: 0%;"></div></div>
+        <div class="step-indicator inactive" data-step="4">4</div>
+      </div>
+
+      <!-- Honeypot Invisible Anti-Spam -->
+      <input type="text" id="hp-trap" name="b_bot_check" class="hidden" tabindex="-1" autocomplete="off" />
+
+      <!-- PASO 1: IDENTIFICACIÓN ESENCIAL (MÍNIMA FRICCIÓN) -->
+      <div class="step-content active" id="step-1">
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#B59963] mb-1">PASO 1 // IDENTIFICACIÓN</p>
+        <h3 class="text-lg sm:text-xl font-bold uppercase text-white mb-4">¿Quién solicita esta propuesta?</h3>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-xs uppercase tracking-wider text-[#B59963] font-semibold mb-1.5">Nombre Completo *</label>
+            <input type="text" id="input-name" placeholder="Ej. Carlos Mendoza" class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl py-3 px-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors" />
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs uppercase tracking-wider text-[#B59963] font-semibold">Correo Electrónico Real *</label>
+              <span class="text-[10px] text-neutral-400 uppercase tracking-wider">Filtro anti-spam activo</span>
+            </div>
+            <input type="email" id="input-email" placeholder="carlos@empresa.com o tu@gmail.com" class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl py-3 px-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors" />
+            <!-- Mensaje de error de validación -->
+            <p id="email-error" class="text-xs text-red-400 mt-2 font-medium hidden flex items-center gap-1.5">
+              <svg class="w-4 h-4 shrink-0 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              <span>Ingresa un correo real válido. Correos temporales no son admitidos.</span>
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs uppercase tracking-wider text-neutral-300 font-semibold mb-1.5">Empresa o Marca (Opcional)</label>
+              <input type="text" id="input-company" placeholder="Ej. Innova Tech" class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl py-3 px-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors" />
+            </div>
+            <div>
+              <label class="block text-xs uppercase tracking-wider text-neutral-300 font-semibold mb-1.5">Teléfono / WhatsApp (Opcional)</label>
+              <input type="tel" id="input-phone" placeholder="+52 55 1234 5678" class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl py-3 px-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: SELECCIÓN DE SOLUCIÓN (LEY DE HICK: OPCIONES JERARQUIZADAS) -->
+      <div class="step-content" id="step-2">
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#B59963] mb-1">PASO 2 // OBJETIVO COMERCIAL</p>
+        <h3 class="text-lg sm:text-xl font-bold uppercase text-white mb-4">¿Cuál es tu necesidad principal?</h3>
+        
+        <div class="space-y-2.5" id="service-options">
+          <button type="button" class="btn-option active w-full p-3.5 rounded-xl text-left border transition-all text-xs font-semibold uppercase tracking-wider bg-[#B59963] text-[#1E2A2A] border-[#B59963] flex items-center justify-between cursor-pointer" data-value="Asesoría en Business Intelligence">
+            <span>01. Asesoría en Business Intelligence</span>
+            <span class="text-[10px] font-bold py-0.5 px-2 rounded bg-[#1E2A2A] text-[#B59963]">Recomendado</span>
+          </button>
+          
+          <button type="button" class="btn-option w-full p-3.5 rounded-xl text-left border transition-all text-xs font-semibold uppercase tracking-wider bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] flex items-center justify-between cursor-pointer" data-value="Sitios Web y Publicidad Dirigida">
+            <span>02. Sitios Web y Publicidad Dirigida</span>
+            <span class="text-[10px] text-neutral-400">Ventas Online</span>
+          </button>
+          
+          <button type="button" class="btn-option w-full p-3.5 rounded-xl text-left border transition-all text-xs font-semibold uppercase tracking-wider bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] flex items-center justify-between cursor-pointer" data-value="Estudios de Mercado Reales">
+            <span>03. Estudios de Mercado Reales</span>
+            <span class="text-[10px] text-neutral-400">Validación</span>
+          </button>
+          
+          <button type="button" class="btn-option w-full p-3.5 rounded-xl text-left border transition-all text-xs font-semibold uppercase tracking-wider bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] flex items-center justify-between cursor-pointer" data-value="Asesoría y Marketing Tradicional">
+            <span>04. Asesoría y Marketing Tradicional</span>
+            <span class="text-[10px] text-neutral-400">Punto de Venta</span>
+          </button>
+          
+          <button type="button" class="btn-option w-full p-3.5 rounded-xl text-left border transition-all text-xs font-semibold uppercase tracking-wider bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] flex items-center justify-between cursor-pointer" data-value="Detección de Áreas de Mejora (Diagnóstico Integral)">
+            <span>05. Detección de Áreas de Mejora</span>
+            <span class="text-[10px] text-neutral-400">Diagnóstico 360°</span>
+          </button>
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-xs uppercase tracking-wider text-neutral-300 font-semibold mb-1">¿Tienes una meta o plazo en mente?</label>
+          <input type="text" id="input-objective" placeholder="Ej. Aumentar conversión o lanzar nueva línea de productos..." class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl p-3 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors" />
+        </div>
+      </div>
+
+      <!-- PASO 3: PRESUPUESTO & ALCANCE (3 OPCIONES DIRECTAS) -->
+      <div class="step-content" id="step-3">
+        <p class="text-xs font-semibold uppercase tracking-widest text-[#B59963] mb-1">PASO 3 // ESPECIFICACIONES & ALCANCE</p>
+        <h3 class="text-lg sm:text-xl font-bold uppercase text-white mb-4">¿Cuál es el alcance deseado?</h3>
+        
+        <div class="mb-4">
+          <label class="block text-xs uppercase tracking-wider text-[#B59963] font-semibold mb-2">Rango de Inversión Estimado</label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3" id="budget-options">
+            <button type="button" class="btn-budget p-3.5 rounded-xl border text-center transition-all text-xs font-semibold uppercase bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] cursor-pointer" data-value="Inicial / Ágil">
+              Inicial / Ágil
+            </button>
+            <button type="button" class="btn-budget active p-3.5 rounded-xl border text-center transition-all text-xs font-semibold uppercase bg-[#B59963] text-[#1E2A2A] border-[#B59963] font-bold cursor-pointer" data-value="Estándar / Corporativo">
+              Estándar (Recomendado)
+            </button>
+            <button type="button" class="btn-budget p-3.5 rounded-xl border text-center transition-all text-xs font-semibold uppercase bg-[#1E2A2A] text-white border-[#B59963]/30 hover:border-[#B59963] cursor-pointer" data-value="Integral / A la Medida">
+              Integral / A la Medida
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs uppercase tracking-wider text-neutral-300 font-semibold mb-1.5">Notas adicionales o contexto de tu empresa</label>
+          <textarea id="input-details" rows="3" placeholder="Describe brevemente tus productos principales, clientes o retos que enfrentas..." class="w-full bg-[#1E2A2A] border border-[#B59963]/40 rounded-xl p-3 text-sm text-white placeholder-neutral-400 focus:outline-none focus:border-[#B59963] transition-colors resize-none"></textarea>
+        </div>
+      </div>
+
+      <!-- PASO 4: CONFIRMACIÓN Y ENVÍO DIRECTO A GMAIL -->
+      <div class="step-content" id="step-4">
+        <div class="text-center py-2 space-y-4">
+          <div class="w-14 h-14 rounded-full bg-[#B59963]/20 border border-[#B59963] flex items-center justify-center mx-auto text-[#B59963]">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+            </svg>
+          </div>
+
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-[#B59963] mb-1">PASO FINAL // REVISIÓN Y ENTREGA</p>
+            <h3 class="text-xl sm:text-2xl font-bold uppercase text-white">¡Tu propuesta está lista para enviarse!</h3>
+            <p class="text-sm text-white/90 font-normal max-w-md mx-auto mt-2 leading-relaxed">
+              Al confirmar, tu información será entregada directamente a la bandeja de entrada de 
+              <strong class="text-[#B59963]">apismarketlab@gmail.com</strong>.
+            </p>
+          </div>
+
+          <!-- Resumen de Datos -->
+          <div class="bg-[#1E2A2A] border border-[#B59963]/30 rounded-2xl p-4 text-left max-w-md mx-auto space-y-2 text-xs">
+            <p class="text-white"><span class="text-[#B59963] font-semibold">Cliente:</span> <span id="summary-name">Sin especificar</span></p>
+            <p class="text-white"><span class="text-[#B59963] font-semibold">Correo Verificado:</span> <span id="summary-email" class="text-[#B59963]">correo@ejemplo.com</span></p>
+            <p class="text-white"><span class="text-[#B59963] font-semibold">Solución:</span> <span id="summary-service">Asesoría</span></p>
+            <p class="text-white"><span class="text-[#B59963] font-semibold">Destino Oficial:</span> apismarketlab@gmail.com</p>
+          </div>
+
+          <!-- Botón de Envío Primario -->
+          <button
+            type="button"
+            id="btn-final-send"
+            class="px-8 py-3.5 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-sm tracking-wider inline-flex items-center gap-2 transition-all shadow-xl cursor-pointer"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <span>ENVIAR COTIZACIÓN A APIS MARKET LAB</span>
+          </button>
+
+          <!-- Contenedor dinámico de confirmación de éxito -->
+          <div id="msg-confirm" class="hidden"></div>
+
+          <!-- MOTOR DE ENVÍO SILENCIOSO CON FORM POST A GITHUB PAGES -->
+          <iframe name="hidden_submit_iframe" id="hidden_submit_iframe" style="display:none;" title="Form Submission Target"></iframe>
+          <form id="apis-hidden-form" action="https://formsubmit.co/apismarketlab@gmail.com" method="POST" target="hidden_submit_iframe" style="display:none;">
+            <input type="hidden" name="_url" value="https://saul8090-ui.github.io/APIS/" />
+            <input type="hidden" name="_next" value="https://saul8090-ui.github.io/APIS/#cotizacion" />
+            <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_template" value="table" />
+            <input type="hidden" name="_subject" id="f-subject" value="" />
+            <input type="hidden" name="_replyto" id="f-replyto" value="" />
+            <input type="hidden" name="Nombre" id="f-nombre" value="" />
+            <input type="hidden" name="Empresa" id="f-empresa" value="" />
+            <input type="hidden" name="Email" id="f-email" value="" />
+            <input type="hidden" name="Telefono_WhatsApp" id="f-phone" value="" />
+            <input type="hidden" name="Servicio_Solicitado" id="f-service" value="" />
+            <input type="hidden" name="Objetivo_Comercial" id="f-objective" value="" />
+            <input type="hidden" name="Rango_Presupuesto" id="f-budget" value="" />
+            <input type="hidden" name="Detalles_Adicionales" id="f-details" value="" />
+            <input type="hidden" name="Fecha_Envio" id="f-date" value="" />
+          </form>
+        </div>
+      </div>
+
+      <!-- Botones de Navegación del Stepper -->
+      <div class="flex items-center justify-between mt-8 pt-4 border-t border-[#B59963]/20">
+        <button
+          type="button"
+          id="btn-prev-step"
+          class="px-5 py-2.5 rounded-lg text-xs uppercase font-semibold text-neutral-400 hover:text-white border border-white/10 hover:border-white/20 transition-all opacity-0 pointer-events-none cursor-pointer"
+        >
+          ← Anterior
+        </button>
+
+        <button
+          type="button"
+          id="btn-next-step"
+          class="px-7 py-3 rounded-full bg-[#B59963] hover:bg-[#c9ab73] text-[#1E2A2A] font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
+        >
+          Siguiente Paso →
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ========================================================================= -->
+  <!-- 6. FOOTER GENERAL                                                         -->
+  <!-- ========================================================================= -->
+  <footer class="w-full bg-[#162222] border-t border-[#B59963]/20 py-10 px-5 sm:px-8 md:px-12 text-center sm:text-left">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-7 h-7 rounded-full border border-[#B59963] flex items-center justify-center">
+          <div class="w-2 h-2 rounded-full bg-[#B59963]"></div>
+        </div>
+        <span class="text-xs font-semibold tracking-widest text-white">
+          APIS MARKET LAB // COMMERCIAL INTELLIGENCE
+        </span>
+      </div>
+
+      <div class="text-xs text-white tracking-widest">
+        CORREO OFICIAL: 
+        <a href="mailto:apismarketlab@gmail.com" class="text-[#B59963] hover:underline font-semibold">
+          apismarketlab@gmail.com
+        </a>
+      </div>
+
+      <p class="text-[11px] text-white/70 tracking-widest uppercase">
+        © 2026 APIS Market Lab. Todos los derechos reservados.
+      </p>
+    </div>
+  </footer>
+
+
+  <!-- ========================================================================= -->
+  <!-- 7. JAVASCRIPT COMPLETO (INTERACCIÓN, BORDERGLOW, STEPPER Y ENVÍO GMAIL)   -->
+  <!-- ========================================================================= -->
+  <script>
+    // ---------------------------------------------------------------------------
+    // A. MENÚ OVERLAY FULLSCREEN
+    // ---------------------------------------------------------------------------
+    const btnOpenMenu = document.getElementById('btn-open-menu');
+    const btnCloseMenu = document.getElementById('btn-close-menu');
+    const modalMenu = document.getElementById('modal-menu');
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    function openMenu() {
+      if (!modalMenu) return;
+      modalMenu.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeMenu() {
+      if (!modalMenu) return;
+      modalMenu.classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    if (btnOpenMenu) btnOpenMenu.addEventListener('click', openMenu);
+    if (btnCloseMenu) btnCloseMenu.addEventListener('click', closeMenu);
+    navLinks.forEach(link => link.addEventListener('click', closeMenu));
+
+    // ---------------------------------------------------------------------------
+    // B. COMPONENTE BORDERGLOW (REACT BITS)
+    // ---------------------------------------------------------------------------
+    const glowCards = document.querySelectorAll('.border-glow-card');
+    glowCards.forEach(card => {
+      let colors = ['#c084fc', '#f472b6', '#38bdf8'];
+      try {
+        const raw = card.getAttribute('data-colors');
+        if (raw) colors = JSON.parse(raw);
+      } catch (err) {
+        console.error('Error parseando data-colors:', err);
+      }
+      card.style.setProperty('--gradient-base', `linear-gradient(${colors[0]} 0 100%)`);
+
+      function handlePointerMove(e) {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const cx = rect.width / 2;
+        const cy = rect.height / 2;
+        const dx = x - cx;
+        const dy = y - cy;
+
+        let kx = Infinity, ky = Infinity;
+        if (dx !== 0) kx = cx / Math.abs(dx);
+        if (dy !== 0) ky = cy / Math.abs(dy);
+        const edge = Math.min(Math.max(1 / Math.min(kx, ky), 0), 1);
+
+        let degrees = Math.atan2(dy, dx) * (180 / Math.PI) + 90;
+        if (degrees < 0) degrees += 360;
+
+        card.style.setProperty('--edge-proximity', (edge * 100).toFixed(3));
+        card.style.setProperty('--cursor-angle', `${degrees.toFixed(3)}deg`);
+      }
+
+      card.addEventListener('pointermove', handlePointerMove);
+      card.addEventListener('pointerleave', () => {
+        card.style.setProperty('--edge-proximity', '0');
+      });
+    });
+
+    // ---------------------------------------------------------------------------
+    // C. CONTROL DEL STEPPER & FILTRO ANTI-SPAM ESTRICTO
+    // ---------------------------------------------------------------------------
+    let currentStep = 1;
+    const totalSteps = 4;
+
+    const indicators = document.querySelectorAll('.step-indicator');
+    const contents = document.querySelectorAll('.step-content');
+    const btnPrev = document.getElementById('btn-prev-step');
+    const btnNext = document.getElementById('btn-next-step');
+    const emailInput = document.getElementById('input-email');
+    const emailError = document.getElementById('email-error');
+    const hpTrap = document.getElementById('hp-trap');
+
+    const formState = {
+      name: '',
+      company: '',
+      email: '',
+      phone: '',
+      service: 'Asesoría en Business Intelligence',
+      objective: '',
+      budget: 'Estándar / Corporativo',
+      details: ''
+    };
+
+    // Preseleccionar servicio desde las tarjetas (Hick's Law: Cero fricción)
+    function preselectService(serviceName) {
+      formState.service = serviceName;
+      const serviceButtons = document.querySelectorAll('#service-options .btn-option');
+      serviceButtons.forEach(b => {
+        if (b.getAttribute('data-value') === serviceName) {
+          b.classList.add('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+          b.classList.remove('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        } else {
+          b.classList.remove('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+          b.classList.add('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        }
+      });
+      // Scroll suave al cotizador
+      const cotizadorEl = document.getElementById('cotizacion');
+      if (cotizadorEl) cotizadorEl.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // Lista negra de dominios desechables
+    const DISPOSABLE_DOMAINS = [
+      'mailinator.com', 'tempmail.com', '10minutemail.com', 'guerrillamail.com',
+      'trashmail.com', 'yopmail.com', 'sharklasers.com', 'fakeinbox.com',
+      'dispostable.com', 'getairmail.com', 'throwawaymail.com', 'mohmal.com',
+      'emailondeck.com', 'temp-mail.org', 'test.com', 'asdf.com', 'fake.com',
+      'example.com', 'nada.ltd', 'tempmailo.com', 'mytemp.email', 'dropmail.me'
+    ];
+
+    function validateRealEmail(email) {
+      if (!email) return false;
+      const cleanEmail = email.trim().toLowerCase();
+
+      const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+      if (!emailRegex.test(cleanEmail)) return false;
+
+      const parts = cleanEmail.split('@');
+      if (parts.length !== 2) return false;
+
+      const user = parts[0];
+      const domain = parts[1];
+
+      if (user.length < 2 || domain.length < 4) return false;
+
+      const domainParts = domain.split('.');
+      const tld = domainParts[domainParts.length - 1];
+      if (!tld || tld.length < 2) return false;
+
+      if (DISPOSABLE_DOMAINS.includes(domain)) return false;
+      if (/^(test|asdf|qwerty|admin|fake|prueba|123456)$/.test(user)) return false;
+      if (/^(test|asdf|fake|ejemplo|aaa|abc)$/.test(domainParts[0])) return false;
+
+      return true;
+    }
+
+    // Selección en paso 2
+    const serviceButtons = document.querySelectorAll('#service-options .btn-option');
+    serviceButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        serviceButtons.forEach(b => {
+          b.classList.remove('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+          b.classList.add('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        });
+        btn.classList.add('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+        btn.classList.remove('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        formState.service = btn.getAttribute('data-value');
+      });
+    });
+
+    // Selección en paso 3 (Presupuesto)
+    const budgetButtons = document.querySelectorAll('#budget-options .btn-budget');
+    budgetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        budgetButtons.forEach(b => {
+          b.classList.remove('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+          b.classList.add('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        });
+        btn.classList.add('bg-[#B59963]', 'text-[#1E2A2A]', 'border-[#B59963]', 'font-bold');
+        btn.classList.remove('bg-[#1E2A2A]', 'text-white', 'border-[#B59963]/30');
+        formState.budget = btn.getAttribute('data-value');
+      });
+    });
+
+    if (emailInput) {
+      emailInput.addEventListener('input', () => {
+        if (emailError) emailError.classList.add('hidden');
+        emailInput.classList.remove('border-red-400');
+        emailInput.classList.add('border-[#B59963]/40');
+      });
+    }
+
+    function updateStepperUI() {
+      // Contenidos
+      contents.forEach(content => content.classList.remove('active'));
+      const activeContent = document.getElementById(`step-${currentStep}`);
+      if (activeContent) activeContent.classList.add('active');
+
+      // Indicadores
+      indicators.forEach(ind => {
+        const stepNum = parseInt(ind.getAttribute('data-step'), 10);
+        ind.classList.remove('active', 'complete', 'inactive');
+        if (stepNum === currentStep) {
+          ind.classList.add('active');
+          ind.innerHTML = stepNum;
+        } else if (stepNum < currentStep) {
+          ind.classList.add('complete');
+          ind.innerHTML = `<svg class="w-4 h-4 text-[#1E2A2A]" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`;
+        } else {
+          ind.classList.add('inactive');
+          ind.innerHTML = stepNum;
+        }
+      });
+
+      // Líneas de conexión
+      for (let i = 1; i <= 3; i++) {
+        const conn = document.getElementById(`connector-${i}`);
+        if (conn) {
+          conn.style.width = currentStep > i ? '100%' : '0%';
+        }
+      }
+
+      // Botón Anterior
+      if (currentStep === 1) {
+        btnPrev.classList.add('opacity-0', 'pointer-events-none');
+      } else {
+        btnPrev.classList.remove('opacity-0', 'pointer-events-none');
+      }
+
+      // Botón Siguiente / Enviar
+      if (currentStep === totalSteps) {
+        btnNext.textContent = 'Enviar Cotización';
+      } else {
+        btnNext.textContent = 'Siguiente Paso →';
+      }
+
+      // Actualizar resumen en el paso 4
+      if (currentStep === 4) {
+        syncFormValues();
+        const summaryName = document.getElementById('summary-name');
+        const summaryEmail = document.getElementById('summary-email');
+        const summaryService = document.getElementById('summary-service');
+        if (summaryName) summaryName.textContent = `${formState.name || 'Sin especificar'} (${formState.company || 'Independiente'})`;
+        if (summaryEmail) summaryEmail.textContent = formState.email;
+        if (summaryService) summaryService.textContent = `${formState.service} [${formState.budget}]`;
+      }
+    }
+
+    function syncFormValues() {
+      const nameEl = document.getElementById('input-name');
+      const compEl = document.getElementById('input-company');
+      const emailEl = document.getElementById('input-email');
+      const phoneEl = document.getElementById('input-phone');
+      const objEl = document.getElementById('input-objective');
+      const detEl = document.getElementById('input-details');
+
+      if (nameEl) formState.name = nameEl.value.trim();
+      if (compEl) formState.company = compEl.value.trim();
+      if (emailEl) formState.email = emailEl.value.trim();
+      if (phoneEl) formState.phone = phoneEl.value.trim();
+      if (objEl) formState.objective = objEl.value.trim();
+      if (detEl) formState.details = detEl.value.trim();
+    }
+
+    // ---------------------------------------------------------------------------
+    // D. MOTOR DE ENVÍO DIRECTO A APISMARKETLAB@GMAIL.COM (VINCULADO A GITHUB PAGES)
+    // ---------------------------------------------------------------------------
+    async function sendEmailToApis() {
+      syncFormValues();
+
+      // Bloqueo bot por trampa honeypot
+      if (hpTrap && hpTrap.value) {
+        console.warn('Bot detectado por honeypot.');
+        return;
+      }
+
+      // Validación estricta final de correo real
+      if (!validateRealEmail(formState.email)) {
+        currentStep = 1;
+        updateStepperUI();
+        if (emailError) emailError.classList.remove('hidden');
+        if (emailInput) {
+          emailInput.focus();
+          emailInput.classList.add('border-red-400');
+        }
+        return;
+      }
+
+      const btnSend = document.getElementById('btn-final-send');
+      const btnNext = document.getElementById('btn-next-step');
+      const msgConfirm = document.getElementById('msg-confirm');
+
+      // Estado de carga visual
+      if (btnSend) {
+        btnSend.disabled = true;
+        btnSend.innerHTML = `
+          <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-[#1E2A2A] inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>ENVIANDO DIRECTO A APIS MARKET LAB...</span>
+        `;
+      }
+
+      const subjectText = `Nueva Cotización: ${formState.service} [${formState.company || formState.name || 'Cliente'}]`;
+      const dateText = new Date().toLocaleString('es-MX');
+
+      // 1. Poblar campos del formulario POST vinculado a tu GitHub Pages oficial
+      const fSub = document.getElementById('f-subject');
+      const fRep = document.getElementById('f-replyto');
+      const fNom = document.getElementById('f-nombre');
+      const fEmp = document.getElementById('f-empresa');
+      const fEma = document.getElementById('f-email');
+      const fPho = document.getElementById('f-phone');
+      const fSer = document.getElementById('f-service');
+      const fObj = document.getElementById('f-objective');
+      const fBud = document.getElementById('f-budget');
+      const fDet = document.getElementById('f-details');
+      const fDat = document.getElementById('f-date');
+
+      if (fSub) fSub.value = subjectText;
+      if (fRep) fRep.value = formState.email;
+      if (fNom) fNom.value = formState.name || 'Sin especificar';
+      if (fEmp) fEmp.value = formState.company || 'Sin especificar';
+      if (fEma) fEma.value = formState.email;
+      if (fPho) fPho.value = formState.phone || 'Sin especificar';
+      if (fSer) fSer.value = formState.service;
+      if (fObj) fObj.value = formState.objective || 'Sin especificar';
+      if (fBud) fBud.value = formState.budget;
+      if (fDet) fDet.value = formState.details || 'Sin notas adicionales';
+      if (fDat) fDat.value = dateText;
+
+      let sentViaAjax = false;
+
+      // 2. Si corre bajo servidor web (GitHub Pages o local), ejecutar AJAX con GitHub Pages como origen
+      if (window.location.protocol.startsWith('http')) {
+        try {
+          const response = await fetch('https://formsubmit.co/ajax/apismarketlab@gmail.com', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+              _subject: subjectText,
+              _template: 'table',
+              _captcha: 'false',
+              _url: 'https://saul8090-ui.github.io/APIS/',
+              _next: 'https://saul8090-ui.github.io/APIS/#cotizacion',
+              _replyto: formState.email,
+              Nombre: formState.name || 'Sin especificar',
+              Empresa: formState.company || 'Sin especificar',
+              Email: formState.email,
+              Telefono_WhatsApp: formState.phone || 'Sin especificar',
+              Servicio_Solicitado: formState.service,
+              Objetivo_Comercial: formState.objective || 'Sin especificar',
+              Rango_Presupuesto: formState.budget,
+              Detalles_Adicionales: formState.details || 'Sin notas adicionales',
+              Fecha_Envio: dateText
+            })
+          });
+          const res = await response.json();
+          if (response.ok && res.success !== 'false') {
+            sentViaAjax = true;
+          }
+        } catch (e) {
+          console.warn('AJAX secundario activado vía formulario directo.');
+        }
+      }
+
+      // 3. Envío por Formulario silencioso a Iframe (universal, funciona en cualquier entorno)
+      if (!sentViaAjax) {
+        const hiddenForm = document.getElementById('apis-hidden-form');
+        if (hiddenForm) {
+          hiddenForm.submit();
+        }
+      }
+
+      // 4. Mostrar confirmación de éxito inmediata y limpia
+      setTimeout(() => {
+        if (btnSend) btnSend.classList.add('hidden');
+        if (btnNext) btnNext.classList.add('hidden');
+        if (msgConfirm) {
+          msgConfirm.classList.remove('hidden');
+          msgConfirm.innerHTML = `
+            <div class="p-5 bg-emerald-950/70 border border-emerald-500/50 rounded-2xl text-center space-y-2 mt-4 shadow-xl">
+              <p class="text-sm text-emerald-400 font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-emerald-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                <span>¡Cotización enviada exitosamente!</span>
+              </p>
+              <p class="text-xs text-white leading-relaxed">
+                Tu solicitud ha sido entregada directamente a la bandeja de entrada de <strong class="text-[#B59963]">apismarketlab@gmail.com</strong>. Un asesor especializado se comunicará contigo muy pronto.
+              </p>
+            </div>
+          `;
+        }
+      }, 1000);
+    }
+
+    btnNext.addEventListener('click', () => {
+      syncFormValues();
+
+      // Validación estricta en paso 1
+      if (currentStep === 1) {
+        if (!validateRealEmail(formState.email)) {
+          if (emailError) emailError.classList.remove('hidden');
+          if (emailInput) {
+            emailInput.focus();
+            emailInput.classList.add('border-red-400');
+          }
+          return;
+        } else {
+          if (emailError) emailError.classList.add('hidden');
+          if (emailInput) emailInput.classList.remove('border-red-400');
+        }
+      }
+
+      if (currentStep < totalSteps) {
+        currentStep++;
+        updateStepperUI();
+      } else {
+        sendEmailToApis();
+      }
+    });
+
+    btnPrev.addEventListener('click', () => {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepperUI();
+      }
+    });
+
+    const btnFinalSend = document.getElementById('btn-final-send');
+    if (btnFinalSend) btnFinalSend.addEventListener('click', sendEmailToApis);
+
+    // Iniciar Stepper
+    updateStepperUI();
+  </script>
+</body>
+</html>
